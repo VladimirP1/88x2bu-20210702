@@ -135,6 +135,8 @@ CONFIG_RTW_GRO = y
 CONFIG_RTW_NETIF_SG = y
 CONFIG_RTW_IPCAM_APPLICATION = n
 CONFIG_RTW_REPEATER_SON = n
+CONFIG_RTW_MESH = y
+CONFIG_IOCTL_CFG80211 = y
 CONFIG_ICMP_VOQ = n
 CONFIG_IP_R_MONITOR = n #arp VOQ and high rate
 # user priority mapping rule : tos, dscp
@@ -1401,6 +1403,10 @@ STAGINGMODDIR := /lib/modules/$(KVER)/kernel/drivers/staging
 # End of Platform Specific Flags
 endif
 # *** End AUTODETECT ***
+
+ifeq ($(CONFIG_RTW_MESH), y)
+EXTRA_CFLAGS += -DCONFIG_RTW_MESH
+endif
 
 ifeq ($(CONFIG_PLATFORM_I386_PC), y)
 EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN

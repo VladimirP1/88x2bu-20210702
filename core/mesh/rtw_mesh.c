@@ -3020,14 +3020,14 @@ static void rtw_mpath_tx_queue_flush(_adapter *adapter)
 	}
 }
 
-#ifdef PLATFORM_LINUX /* 3.10 ~ 4.13 checked */
-#if defined(CONFIG_SLUB)
-#include <linux/slub_def.h>
-#elif defined(CONFIG_SLAB)
-#include <linux/slab_def.h>
-#endif
+//#ifdef PLATFORM_LINUX /* 3.10 ~ 4.13 checked */
+//#if defined(CONFIG_SLUB)
+//#include <linux/slub_def.h>
+//#elif defined(CONFIG_SLAB)
+#include <linux/slab.h>
+//#endif
 typedef struct kmem_cache rtw_mcache;
-#endif
+//#endif
 
 rtw_mcache *rtw_mcache_create(const char *name, size_t size)
 {
