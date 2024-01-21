@@ -30,7 +30,7 @@
 SCRIPT_NAME="remove-driver.sh"
 SCRIPT_VERSION="20231118"
 
-MODULE_NAME="88x2bu"
+MODULE_NAME="88x2bu_ohd"
 
 DRV_NAME="rtl88x2bu"
 DRV_VERSION="5.13.1"
@@ -120,7 +120,7 @@ fi
 #
 if command -v dkms >/dev/null 2>&1; then
 	dkms status | while IFS="/, " read -r modname modver kerver _dummy; do
-		case "$modname" in *${MODULE_NAME})
+		case "$modname" in *${DRV_NAME})
 			echo "--> ${modname} ${modver} ${kerver}"
 			dkms remove -m "${modname}" -v "${modver}" -k "${kerver}" -c "/usr/src/${modname}-${modver}/dkms.conf"
 		esac

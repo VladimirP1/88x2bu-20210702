@@ -691,6 +691,8 @@ void rtl8822b_set_tx_power_index(PADAPTER adapter, u32 powerindex, enum rf_path 
 	struct dm_struct *phydm = adapter_to_phydm(adapter);
 	u8 shift = 0;
 	boolean write_ret;
+    // OpenHD: final tx power index set method
+    //RTW_WARN("OpenHD rtl8822b_set_tx_power_index %s %d\n", MGN_RATE_STR(rate), powerindex);
 
 	if (!IS_1T_RATE(rate) && !IS_2T_RATE(rate)) {
 		RTW_ERR(FUNC_ADPT_FMT" invalid rate(%s)\n", FUNC_ADPT_ARG(adapter), MGN_RATE_STR(rate));
@@ -832,7 +834,7 @@ static void switch_chnl_and_set_bw_by_drv(PADAPTER adapter, u8 switch_band)
 		ret = config_phydm_switch_band_8822b(p_dm_odm, hal->current_channel);
 
 		if (!ret) {
-			RTW_INFO("%s: config_phydm_switch_band_8822b fail\n", __FUNCTION__);
+			RTW_WARN("OpenHD%s: config_phydm_switch_band_8822b fail\n", __FUNCTION__);
 			rtw_warn_on(1);
 			return;
 		}
@@ -844,7 +846,7 @@ static void switch_chnl_and_set_bw_by_drv(PADAPTER adapter, u8 switch_band)
 		hal->bSwChnl = _FALSE;
 
 		if (!ret) {
-			RTW_INFO("%s: config_phydm_switch_channel_8822b fail\n", __FUNCTION__);
+			RTW_WARN("OpenHD%s: config_phydm_switch_channel_8822b fail\n", __FUNCTION__);
 			rtw_warn_on(1);
 			return;
 		}
@@ -863,7 +865,7 @@ static void switch_chnl_and_set_bw_by_drv(PADAPTER adapter, u8 switch_band)
 		hal->bSetChnlBW = _FALSE;
 
 		if (!ret) {
-			RTW_INFO("%s: config_phydm_switch_bandwidth_8822b fail\n", __FUNCTION__);
+			RTW_WARN("OpenHD %s: config_phydm_switch_bandwidth_8822b fail\n", __FUNCTION__);
 			rtw_warn_on(1);
 			return;
 		}
@@ -903,6 +905,12 @@ void rtl8822b_switch_chnl_and_set_bw(PADAPTER adapter)
 			 hal->bSetChnlBW,
 			 hal->current_channel_bw);
 	}
+    /*RTW_WARN("[%s] bSwChnl=%d, ch=%d, bSetChnlBW=%d, bw=%d\n",
+             __FUNCTION__,
+             hal->bSwChnl,
+             hal->current_channel,
+             hal->bSetChnlBW,
+             hal->current_channel_bw);*/
 
 	if (RTW_CANNOT_RUN(adapter)) {
 		hal->bSwChnlAndSetBWInProgress = _FALSE;

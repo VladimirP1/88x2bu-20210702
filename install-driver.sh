@@ -30,7 +30,7 @@
 SCRIPT_NAME="install-driver.sh"
 SCRIPT_VERSION="20231115"
 
-MODULE_NAME="88x2bu"
+MODULE_NAME="88x2bu_ohd"
 
 DRV_NAME="rtl88x2bu"
 DRV_VERSION="5.13.1"

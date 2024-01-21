@@ -21,15 +21,6 @@ MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Realtek Wireless Lan Driver");
 MODULE_AUTHOR("Realtek Semiconductor Corp.");
 MODULE_VERSION(DRIVERVERSION);
-/* Include namespace when file system namespace errors occur during
- * kernel build. This is about 'kernel_read' or 'kernel_write'
- *
- * This declaration was created to resolve an error on Rockchip.
- * You can modify or add flags in the fs/Makefile.
- */
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
-	MODULE_IMPORT_NS(VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver);
-#endif
 
 /* module param defaults */
 int rtw_chip_version = 0x00;
@@ -81,7 +72,7 @@ int rtw_scan_mode = 1;/* active, passive */
 #else
 	int rtw_wow_power_mgnt = PS_MODE_ACTIVE;
 	int rtw_wow_lps_level = LPS_NORMAL;
-#endif
+#endif	
 #endif /* CONFIG_WOWLAN */
 
 #else /* !CONFIG_POWER_SAVING */
@@ -127,7 +118,7 @@ MODULE_PARM_DESC(rtw_wow_lps_1t1r, "The default WOW LPS 1T1R setting");
 #endif
 #endif /* CONFIG_WOWLAN */
 
-/* LPS:
+/* LPS: 
  * rtw_smart_ps = 0 => TX: pwr bit = 1, RX: PS_Poll
  * rtw_smart_ps = 1 => TX: pwr bit = 0, RX: PS_Poll
  * rtw_smart_ps = 2 => TX: pwr bit = 0, RX: NullData with pwr bit = 0
@@ -136,8 +127,8 @@ int rtw_smart_ps = 2;
 
 int rtw_max_bss_cnt = 0;
 module_param(rtw_max_bss_cnt, int, 0644);
-#ifdef CONFIG_WMMPS_STA
-/* WMMPS:
+#ifdef CONFIG_WMMPS_STA	
+/* WMMPS: 
  * rtw_smart_ps = 0 => Only for fw test
  * rtw_smart_ps = 1 => Refer to Beacon's TIM Bitmap
  * rtw_smart_ps = 2 => Don't refer to Beacon's TIM Bitmap
@@ -149,10 +140,6 @@ int rtw_check_fw_ps = 1;
 
 #ifdef CONFIG_TX_EARLY_MODE
 int rtw_early_mode = 1;
-#endif
-
-#ifdef CONFIG_SW_LED
-int rtw_led_ctrl = 1; // default to normal blinking
 #endif
 
 int rtw_usb_rxagg_mode = 2;/* RX_AGG_DMA=1, RX_AGG_USB=2 */
@@ -209,7 +196,7 @@ int rtw_uapsd_ac_enable = 0x0;
 	/*PHYDM API, must enable by default*/
 	int rtw_pwrtrim_enable = 1;
 #else
-	int rtw_pwrtrim_enable = 0; /* Default Enable power trim by efuse config */
+	int rtw_pwrtrim_enable = 0; /* Default Enalbe  power trim by efuse config */
 #endif
 
 #if CONFIG_TX_AC_LIFETIME
@@ -625,12 +612,6 @@ module_param(rtw_pci_aspm_enable, int, 0644);
 #ifdef CONFIG_TX_EARLY_MODE
 module_param(rtw_early_mode, int, 0644);
 #endif
-
-#ifdef CONFIG_SW_LED
-module_param(rtw_led_ctrl, int, 0644);
-MODULE_PARM_DESC(rtw_led_ctrl,"Led Control: 0=Always off, 1=Normal blink, 2=Always on");
-#endif
-
 #ifdef CONFIG_ADAPTOR_INFO_CACHING_FILE
 char *rtw_adaptor_info_caching_file_path = "/data/misc/wifi/rtw_cache";
 module_param(rtw_adaptor_info_caching_file_path, charp, 0644);
@@ -1093,6 +1074,14 @@ static void rtw_regsty_load_tx_ac_lifetime(struct registry_priv *regsty)
 }
 #endif
 
+// OpenHD params
+int openhd_override_channel = 0;
+module_param(openhd_override_channel, int, 0644);
+MODULE_PARM_DESC(openhd_override_channel, "OpenHD easy (CRDA workaround)");
+int openhd_override_tx_power_mbm = 0;
+module_param(openhd_override_tx_power_mbm, int, 0644);
+MODULE_PARM_DESC(openhd_override_tx_power_mbm, "OpenHD easy (CRDA workaround)");
+
 void rtw_regsty_load_target_tx_power(struct registry_priv *regsty)
 {
 	int path, rs;
@@ -1326,9 +1315,6 @@ uint loadparam(_adapter *padapter)
 
 #ifdef CONFIG_TX_EARLY_MODE
 	registry_par->early_mode = (u8)rtw_early_mode;
-#endif
-#ifdef CONFIG_SW_LED
-	registry_par->led_ctrl = (u8)rtw_led_ctrl;
 #endif
 	registry_par->trx_path_bmp = (u8)rtw_trx_path_bmp;
 	registry_par->tx_path_lmt = (u8)rtw_tx_path_lmt;
@@ -1643,8 +1629,8 @@ static int rtw_net_set_mac_address(struct net_device *pnetdev, void *addr)
 	}
 
 	_rtw_memcpy(adapter_mac_addr(padapter), sa->sa_data, ETH_ALEN); /* set mac addr to adapter */
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 17, 0) || defined(RHEL8))
-	eth_hw_addr_set(pnetdev, sa->sa_data);
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0))
+	dev_addr_set(pnetdev, sa->sa_data);
 #else
 	_rtw_memcpy(pnetdev->dev_addr, sa->sa_data, ETH_ALEN); /* set mac addr to net_device */
 #endif
@@ -1735,7 +1721,7 @@ unsigned int rtw_classify8021d(struct sk_buff *skb)
 
 static u16 rtw_select_queue(struct net_device *dev, struct sk_buff *skb
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0)
-	#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0) || defined(RHEL8))
+	#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)
 	, struct net_device *sb_dev
 	#else
 	, void *accel_priv
@@ -2163,7 +2149,7 @@ int rtw_os_ndev_register(_adapter *adapter, const char *name)
 	u8 rtnl_lock_needed = rtw_rtnl_lock_needed(dvobj);
 
 #ifdef CONFIG_RTW_NAPI
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0) || defined(RHEL88))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0))
 	netif_napi_add_weight(ndev, &adapter->napi, rtw_recv_napi_poll, RTL_NAPI_WEIGHT);
 #else
 	netif_napi_add(ndev, &adapter->napi, rtw_recv_napi_poll, RTL_NAPI_WEIGHT);
@@ -2187,11 +2173,15 @@ int rtw_os_ndev_register(_adapter *adapter, const char *name)
 	/* alloc netdev name */
 	rtw_init_netdev_name(ndev, name);
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 17, 0) || defined(RHEL8))
-	eth_hw_addr_set(ndev, adapter_mac_addr(adapter));
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0))
+	dev_addr_set(ndev, adapter_mac_addr(adapter));
 #else
 	_rtw_memcpy(ndev->dev_addr, adapter_mac_addr(adapter), ETH_ALEN);
 #endif
+
+	#ifdef CONFIG_NET_NS
+		dev_net_set(ndev, wiphy_net(adapter_to_wiphy(adapter)));
+	#endif //CONFIG_NET_NS
 
 	/* Tell the network stack we exist */
 
@@ -3946,7 +3936,7 @@ int _netdev_open(struct net_device *pnetdev)
 		#ifdef CONFIG_IOCTL_CFG80211
 		rtw_cfg80211_init_wdev_data(padapter);
 		#endif
-		rtw_netif_carrier_on(pnetdev); /* call this func when rtw_joinbss_event_callback return success */
+		/* rtw_netif_carrier_on(pnetdev); */ /* call this func when rtw_joinbss_event_callback return success */
 		rtw_netif_wake_queue(pnetdev);
 
 		#ifdef CONFIG_BR_EXT
@@ -4067,7 +4057,7 @@ int _netdev_open(struct net_device *pnetdev)
 	rtw_set_pwr_state_check_timer(pwrctrlpriv);
 #endif
 
-	rtw_netif_carrier_on(pnetdev); /* call this func when rtw_joinbss_event_callback return success */
+	/* rtw_netif_carrier_on(pnetdev); */ /* call this func when rtw_joinbss_event_callback return success */
 	rtw_netif_wake_queue(pnetdev);
 
 #ifdef CONFIG_BR_EXT
@@ -4552,9 +4542,7 @@ static int route_dump(u32 *gw_addr , int *gw_index)
 	struct msghdr msg;
 	struct iovec iov;
 	struct sockaddr_nl nladdr;
-	#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	mm_segment_t oldfs;
-	#endif
 	char *pg;
 	int size = 0;
 
@@ -4593,18 +4581,14 @@ static int route_dump(u32 *gw_addr , int *gw_index)
 	msg.msg_controllen = 0;
 	msg.msg_flags = MSG_DONTWAIT;
 
-	#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	oldfs = get_fs();
 	set_fs(KERNEL_DS);
-	#endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
 	err = sock_sendmsg(sock, &msg);
 #else
 	err = sock_sendmsg(sock, &msg, sizeof(req));
 #endif
-	#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	set_fs(oldfs);
-	#endif
 
 	if (err < 0)
 		goto out_sock;
@@ -4629,18 +4613,14 @@ restart:
 		iov_iter_init(&msg.msg_iter, READ, &iov, 1, PAGE_SIZE);
 #endif
 
-		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 		oldfs = get_fs();
 		set_fs(KERNEL_DS);
-		#endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 7, 0))
 		err = sock_recvmsg(sock, &msg, MSG_DONTWAIT);
 #else
 		err = sock_recvmsg(sock, &msg, PAGE_SIZE, MSG_DONTWAIT);
 #endif
-		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 		set_fs(oldfs);
-		#endif
 
 		if (err < 0)
 			goto out_sock_pg;
@@ -4711,18 +4691,14 @@ done:
 		msg.msg_controllen = 0;
 		msg.msg_flags = MSG_DONTWAIT;
 
-		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 		oldfs = get_fs();
 		set_fs(KERNEL_DS);
-		#endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
 		err = sock_sendmsg(sock, &msg);
 #else
 		err = sock_sendmsg(sock, &msg, sizeof(req));
 #endif
-		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 		set_fs(oldfs);
-		#endif
 
 		if (err > 0)
 			goto restart;
@@ -5799,3 +5775,10 @@ int rtw_vendor_ie_set_api(struct net_device *dev, char *extra)
 EXPORT_SYMBOL(rtw_vendor_ie_set_api);
 
 #endif
+
+int get_openhd_override_channel(void){
+    return openhd_override_channel;
+}
+int get_openhd_override_tx_power_mbm(void){
+    return openhd_override_tx_power_mbm;
+}

@@ -25,7 +25,7 @@
 
 SCRIPT_NAME="edit-options.sh"
 # SCRIPT_VERSION="20230710"
-OPTIONS_FILE="88x2bu.conf"
+OPTIONS_FILE="88x2bu_ohd.conf"
 
 # check to ensure sudo was used to start the script
 if [ "$(id -u)" -ne 0 ]; then

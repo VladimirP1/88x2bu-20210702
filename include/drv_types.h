@@ -242,9 +242,6 @@ struct registry_priv {
 #ifdef CONFIG_TX_EARLY_MODE
 	u8   early_mode;
 #endif
-#ifdef CONFIG_SW_LED
-	u8   led_ctrl;
-#endif
 #ifdef CONFIG_NARROWBAND_SUPPORTING
 	u8	rtw_nb_config;
 #endif
@@ -2039,5 +2036,9 @@ int rtw_suspend_free_assoc_resource(_adapter *padapter);
 	#include <pci_ops.h>
 	#include <pci_hal.h>
 #endif
+
+// OpenHD crda workaround
+int get_openhd_override_channel(void);
+int get_openhd_override_tx_power_mbm(void);
 
 #endif /* __DRV_TYPES_H__ */

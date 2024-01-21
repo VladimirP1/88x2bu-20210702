@@ -1,41 +1,20 @@
+VERSION_HEADER = include/rtw_version.h
 EXTRA_CFLAGS += $(USER_EXTRA_CFLAGS)
-EXTRA_CFLAGS += -O1
+EXTRA_CFLAGS += -O2
 #EXTRA_CFLAGS += -O3
-#EXTRA_CFLAGS += -Wall
-#EXTRA_CFLAGS += -Wextra
-#EXTRA_CFLAGS += -Werror
+EXTRA_CFLAGS += -Wno-address
+#EXTRA_CFLAGS += -Wno-stringop-overread
 #EXTRA_CFLAGS += -pedantic
 #EXTRA_CFLAGS += -Wshadow -Wpointer-arith -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes
+#EXTRA_CFLAGS += -Wimplicit-fallthrough=1
 
 EXTRA_CFLAGS += -Wno-unused-variable
 #EXTRA_CFLAGS += -Wno-unused-value
-#EXTRA_CFLAGS += -Wno-unused-label
+EXTRA_CFLAGS += -Wno-unused-label
 #EXTRA_CFLAGS += -Wno-unused-parameter
 #EXTRA_CFLAGS += -Wno-unused-function
 #EXTRA_CFLAGS += -Wno-unused
 #EXTRA_CFLAGS += -Wno-uninitialized
-#EXTRA_CFLAGS += -Wno-vla
-EXTRA_CFLAGS += -Wno-misleading-indentation
-EXTRA_CFLAGS += -Wno-implicit-fallthrough
-#EXTRA_CFLAGS += -Wno-return-type
-#EXTRA_CFLAGS += -Wno-discarded-qualifiers
-
-# Activates Concurrent Mode if uncommented
-#EXTRA_CFLAGS += -DCONFIG_CONCURRENT_MODE
-
-# LED Control
-EXTRA_CFLAGS += -DCONFIG_LED_CONTROL
-EXTRA_CFLAGS += -DCONFIG_SW_LED -DCONFIG_RTW_SW_LED
-EXTRA_CFLAGS += -DCONFIG_LED_ENABLE
-
-# gcc-12
-EXTRA_CFLAGS += -Wno-address
-EXTRA_CFLAGS += -Wframe-larger-than=1648
-
-# gcc-13
-EXTRA_CFLAGS += -Wno-stringop-overread
-EXTRA_CFLAGS += -Wno-enum-conversion
-EXTRA_CFLAGS += -Wno-int-in-bool-context
 
 GCC_VER_49 := $(shell echo `$(CC) -dumpversion | cut -f1-2 -d.` \>= 4.9 | bc )
 ifeq ($(GCC_VER_49),1)
@@ -47,34 +26,6 @@ EXTRA_CFLAGS += -I$(src)/include
 EXTRA_LDFLAGS += --strip-debug
 
 CONFIG_AUTOCFG_CP = n
-
-RHEL_VER := $(shell echo `grep '^ID_LIKE'  /etc/os-release |grep -qi 'fedora' && grep '^VERSION_ID' /etc/os-release | cut -f2 -d= | cut -c2`)
-ifdef RHEL_VER
-ifdef KVER
-RHEL_SVER := $(shell echo $(KVER) |sed -e 's/^[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*-\([0-9][0-9]*\).*/\1/')
-else
-RHEL_SVER := $(shell uname -r |sed -e 's/^[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*-\([0-9][0-9]*\).*/\1/')
-endif
-
-ifeq (${RHEL_VER},8)
-EXTRA_CFLAGS += -DRHEL8
-ifeq ($(shell test $(RHEL_SVER) -ge 477; echo $$?),0)
-EXTRA_CFLAGS += -DRHEL88
-endif
-ifeq ($(shell test $(RHEL_SVER) -ge 513; echo $$?),0)
-EXTRA_CFLAGS += -DRHEL89
-endif
-endif
-
-ifeq (${RHEL_VER},9)
-ifeq ($(shell test $(RHEL_SVER) -ge 284; echo $$?),0)
-EXTRA_CFLAGS += -DRHEL92 -DRHEL88
-endif
-ifeq ($(shell test $(RHEL_SVER) -ge 362; echo $$?),0)
-EXTRA_CFLAGS += -DRHEL89
-endif
-endif
-endif
 
 ########################## WIFI IC ############################
 CONFIG_MULTIDRV = n
@@ -100,10 +51,10 @@ CONFIG_USB_HCI = y
 CONFIG_PCI_HCI = n
 CONFIG_SDIO_HCI = n
 CONFIG_GSPI_HCI = n
-######################### Features ############################
+########################## Features ###########################
 CONFIG_AP_MODE = y
 CONFIG_P2P = y
-CONFIG_MP_INCLUDED = n
+CONFIG_MP_INCLUDED = y
 CONFIG_POWER_SAVING = y
 CONFIG_IPS_MODE = default
 CONFIG_LPS_MODE = default
@@ -111,7 +62,7 @@ CONFIG_USB_AUTOSUSPEND = n
 CONFIG_HW_PWRP_DETECTION = n
 CONFIG_BT_COEXIST = y
 CONFIG_WAPI_SUPPORT = n
-CONFIG_EFUSE_CONFIG_FILE = n
+CONFIG_EFUSE_CONFIG_FILE = y
 CONFIG_EXT_CLK = n
 CONFIG_TRAFFIC_PROTECT = n
 CONFIG_LOAD_PHY_PARA_FROM_FILE = y
@@ -126,7 +77,7 @@ CONFIG_SIGNAL_SCALE_MAPPING = n
 CONFIG_80211W = y
 CONFIG_REDUCE_TX_CPU_LOADING = n
 CONFIG_BR_EXT = y
-CONFIG_TDLS = y
+CONFIG_TDLS = n
 CONFIG_WIFI_MONITOR = y
 CONFIG_MCC_MODE = n
 CONFIG_APPEND_VENDOR_IE_ENABLE = n
@@ -135,13 +86,13 @@ CONFIG_RTW_GRO = y
 CONFIG_RTW_NETIF_SG = y
 CONFIG_RTW_IPCAM_APPLICATION = n
 CONFIG_RTW_REPEATER_SON = n
-CONFIG_RTW_MESH = y
-CONFIG_IOCTL_CFG80211 = y
 CONFIG_ICMP_VOQ = n
 CONFIG_IP_R_MONITOR = n #arp VOQ and high rate
+CONFIG_RTW_MESH = y
 # user priority mapping rule : tos, dscp
 CONFIG_RTW_UP_MAPPING_RULE = tos
 CONFIG_RTW_MBO = n
+CONFIG_RTW_IOCTL_SET_COUNTRY = y
 ########################## Android ###########################
 # CONFIG_RTW_ANDROID - 0: no Android, 4/5/6/7/8/9/10/11 : Android version
 CONFIG_RTW_ANDROID = 0
@@ -154,10 +105,10 @@ endif
 CONFIG_RTW_DEBUG = y
 # default log level is _DRV_INFO_ = 4,
 # please refer to "How_to_set_driver_debug_log_level.doc" to set the available level.
-CONFIG_RTW_LOG_LEVEL = 1
+CONFIG_RTW_LOG_LEVEL = 3
 
 # enable /proc/net/rtlxxxx/ debug interfaces
-CONFIG_PROC_DEBUG = n
+CONFIG_PROC_DEBUG = y
 
 ######################## Wake On Lan ##########################
 CONFIG_WOWLAN = n
@@ -187,8 +138,9 @@ CONFIG_LAYER2_ROAMING = y
 #bit0: ROAM_ON_EXPIRED, #bit1: ROAM_ON_RESUME, #bit2: ROAM_ACTIVE
 CONFIG_ROAMING_FLAG = 0x3
 ###################### Platform Related #######################
-CONFIG_PLATFORM_AUTODETECT = y
-CONFIG_PLATFORM_I386_PC = n
+CONFIG_PLATFORM_I386_PC = y
+CONFIG_PLATFORM_ARM_RPI = n
+CONFIG_PLATFORM_ARM64_RPI = n
 CONFIG_PLATFORM_ANDROID_X86 = n
 CONFIG_PLATFORM_ANDROID_INTEL_X86 = n
 CONFIG_PLATFORM_JB_X86 = n
@@ -256,6 +208,10 @@ CONFIG_CUSTOMER_HUAWEI_GENERAL = n
 CONFIG_DRVEXT_MODULE = n
 
 export TopDIR ?= $(shell pwd)
+
+ifeq ($(CONFIG_RTW_MESH), y)
+EXTRA_CFLAGS += -DCONFIG_RTW_MESH
+endif
 
 ########### COMMON  #################################
 ifeq ($(CONFIG_GSPI_HCI), y)
@@ -348,8 +304,8 @@ endif
 EXTRA_CFLAGS += -DCONFIG_RTL8188E
 
 _HAL_INTFS_FILES +=	hal/HalPwrSeqCmd.o \
-					hal/$(RTL871X)/Hal8188EPwrSeq.o \
-					hal/$(RTL871X)/$(RTL871X)_xmit.o \
+					hal/$(RTL871X)/Hal8188EPwrSeq.o\
+					hal/$(RTL871X)/$(RTL871X)_xmit.o\
 					hal/$(RTL871X)/$(RTL871X)_sreset.o
 
 _HAL_INTFS_FILES +=	hal/$(RTL871X)/$(RTL871X)_hal_init.o \
@@ -404,8 +360,8 @@ MODULE_NAME = 8192ee
 endif
 EXTRA_CFLAGS += -DCONFIG_RTL8192E
 _HAL_INTFS_FILES += hal/HalPwrSeqCmd.o \
-					hal/$(RTL871X)/Hal8192EPwrSeq.o \
-					hal/$(RTL871X)/$(RTL871X)_xmit.o \
+					hal/$(RTL871X)/Hal8192EPwrSeq.o\
+					hal/$(RTL871X)/$(RTL871X)_xmit.o\
 					hal/$(RTL871X)/$(RTL871X)_sreset.o
 
 _HAL_INTFS_FILES +=	hal/$(RTL871X)/$(RTL871X)_hal_init.o \
@@ -464,8 +420,8 @@ endif
 
 _HAL_INTFS_FILES +=  hal/HalPwrSeqCmd.o \
 					hal/$(RTL871X)/Hal8812PwrSeq.o \
-					hal/$(RTL871X)/Hal8821APwrSeq.o \
-					hal/$(RTL871X)/$(RTL871X)_xmit.o \
+					hal/$(RTL871X)/Hal8821APwrSeq.o\
+					hal/$(RTL871X)/$(RTL871X)_xmit.o\
 					hal/$(RTL871X)/$(RTL871X)_sreset.o
 
 _HAL_INTFS_FILES +=	hal/$(RTL871X)/$(RTL871X)_hal_init.o \
@@ -571,7 +527,7 @@ endif
 EXTRA_CFLAGS += -DCONFIG_RTL8723B
 
 _HAL_INTFS_FILES += hal/HalPwrSeqCmd.o \
-					hal/$(RTL871X)/Hal8723BPwrSeq.o \
+					hal/$(RTL871X)/Hal8723BPwrSeq.o\
 					hal/$(RTL871X)/$(RTL871X)_sreset.o
 
 _HAL_INTFS_FILES +=	hal/$(RTL871X)/$(RTL871X)_hal_init.o \
@@ -633,7 +589,7 @@ EXTRA_CFLAGS += -DCONFIG_RTL8814A
 
 _HAL_INTFS_FILES +=  hal/HalPwrSeqCmd.o \
 					hal/$(RTL871X)/Hal8814PwrSeq.o \
-					hal/$(RTL871X)/$(RTL871X)_xmit.o \
+					hal/$(RTL871X)/$(RTL871X)_xmit.o\
 					hal/$(RTL871X)/$(RTL871X)_sreset.o
 
 _HAL_INTFS_FILES +=	hal/$(RTL871X)/$(RTL871X)_hal_init.o \
@@ -693,7 +649,7 @@ endif
 EXTRA_CFLAGS += -DCONFIG_RTL8703B
 
 _HAL_INTFS_FILES += hal/HalPwrSeqCmd.o \
-					hal/$(RTL871X)/Hal8703BPwrSeq.o \
+					hal/$(RTL871X)/Hal8703BPwrSeq.o\
 					hal/$(RTL871X)/$(RTL871X)_sreset.o
 
 _HAL_INTFS_FILES +=	hal/$(RTL871X)/$(RTL871X)_hal_init.o \
@@ -749,7 +705,7 @@ endif
 EXTRA_CFLAGS += -DCONFIG_RTL8723D
 
 _HAL_INTFS_FILES += hal/HalPwrSeqCmd.o \
-					hal/$(RTL871X)/Hal8723DPwrSeq.o \
+					hal/$(RTL871X)/Hal8723DPwrSeq.o\
 					hal/$(RTL871X)/$(RTL871X)_sreset.o
 
 _HAL_INTFS_FILES +=	hal/$(RTL871X)/$(RTL871X)_hal_init.o \
@@ -817,7 +773,7 @@ endif
 EXTRA_CFLAGS += -DCONFIG_RTL8188F
 
 _HAL_INTFS_FILES += hal/HalPwrSeqCmd.o \
-					hal/$(RTL871X)/Hal8188FPwrSeq.o \
+					hal/$(RTL871X)/Hal8188FPwrSeq.o\
 					hal/$(RTL871X)/$(RTL871X)_sreset.o
 
 _HAL_INTFS_FILES +=	hal/$(RTL871X)/$(RTL871X)_hal_init.o \
@@ -864,7 +820,7 @@ endif
 EXTRA_CFLAGS += -DCONFIG_RTL8188GTV
 
 _HAL_INTFS_FILES += hal/HalPwrSeqCmd.o \
-					hal/$(RTL871X)/Hal8188GTVPwrSeq.o \
+					hal/$(RTL871X)/Hal8188GTVPwrSeq.o\
 					hal/$(RTL871X)/$(RTL871X)_sreset.o
 
 _HAL_INTFS_FILES +=	hal/$(RTL871X)/$(RTL871X)_hal_init.o \
@@ -904,7 +860,7 @@ ifeq ($(CONFIG_USB_HCI), y)
 ifeq ($(CONFIG_BT_COEXIST), n)
 MODULE_NAME = 8812bu
 else
-MODULE_NAME = 88x2bu
+MODULE_NAME = 88x2bu_ohd
 endif
 endif
 ifeq ($(CONFIG_PCI_HCI), y)
@@ -942,7 +898,7 @@ endif
 EXTRA_CFLAGS += -DCONFIG_RTL8710B
 
 _HAL_INTFS_FILES += hal/HalPwrSeqCmd.o \
-					hal/$(RTL871X)/Hal8710BPwrSeq.o \
+					hal/$(RTL871X)/Hal8710BPwrSeq.o\
 					hal/$(RTL871X)/$(RTL871X)_sreset.o
 
 _HAL_INTFS_FILES +=	hal/$(RTL871X)/$(RTL871X)_hal_init.o \
@@ -989,7 +945,7 @@ endif
 EXTRA_CFLAGS += -DCONFIG_RTL8192F
 
 _HAL_INTFS_FILES += hal/HalPwrSeqCmd.o \
-					hal/$(RTL871X)/Hal8192FPwrSeq.o \
+					hal/$(RTL871X)/Hal8192FPwrSeq.o\
 					hal/$(RTL871X)/$(RTL871X)_sreset.o
 
 _HAL_INTFS_FILES +=	hal/$(RTL871X)/$(RTL871X)_hal_init.o \
@@ -1378,44 +1334,22 @@ endif
 EXTRA_CFLAGS += -DDM_ODM_SUPPORT_TYPE=0x04
 
 ifeq ($(CONFIG_RTW_MBO), y)
-EXTRA_CFLAGS += -DCONFIG_RTW_MBO -DCONFIG_RTW_WNM -DCONFIG_RTW_BTM_ROAM
+EXTRA_CFLAGS += -DCONFIG_RTW_MBO -DCONFIG_RTW_80211K -DCONFIG_RTW_WNM -DCONFIG_RTW_BTM_ROAM
 EXTRA_CFLAGS += -DCONFIG_RTW_80211R
 endif
 
-# *** AUTODETECT ***
-ifeq ($(CONFIG_PLATFORM_AUTODETECT), y)
-EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN
-EXTRA_CFLAGS += -DCONFIG_IOCTL_CFG80211 -DRTW_USE_CFG80211_STA_EVENT
-
-#SUBARCH := $(shell uname -m)
-SUBARCH := $(shell uname -m | sed -e "s/i.86/i386/; s/ppc/powerpc/; s/armv.l/arm/; s/aarch64/arm64/; s/riscv.*/riscv/;")
-ARCH ?= $(SUBARCH)
-
-CROSS_COMPILE ?=
-KVER ?= $(shell uname -r)
-KSRC := /lib/modules/$(KVER)/build
-MODDESTDIR := /lib/modules/$(KVER)/kernel/drivers/net/wireless/
-INSTALL_PREFIX :=
-STAGINGMODDIR := /lib/modules/$(KVER)/kernel/drivers/staging
-
-# Platform Specific Flags may be Needed in some Situations
-#EXTRA_CFLAGS += -DCONFIG_PLATFORM_ANDROID
-# End of Platform Specific Flags
-endif
-# *** End AUTODETECT ***
-
-ifeq ($(CONFIG_RTW_MESH), y)
-EXTRA_CFLAGS += -DCONFIG_RTW_MESH
+ifeq ($(CONFIG_RTW_IOCTL_SET_COUNTRY), y)
+EXTRA_CFLAGS += -DCONFIG_RTW_IOCTL_SET_COUNTRY
 endif
 
 ifeq ($(CONFIG_PLATFORM_I386_PC), y)
 EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN
 EXTRA_CFLAGS += -DCONFIG_IOCTL_CFG80211 -DRTW_USE_CFG80211_STA_EVENT
 
-SUBARCH := $(shell uname -m | sed -e s/i.86/i386/)
+SUBARCH := $(shell uname -m | sed -e 's/i.86/i386/;s/armv7l/arm/;s/aarch64/arm64/')
 ARCH ?= $(SUBARCH)
 CROSS_COMPILE ?=
-KVER := $(shell uname -r)
+KVER  := $(shell uname -r)
 KSRC := /lib/modules/$(KVER)/build
 MODDESTDIR := /lib/modules/$(KVER)/kernel/drivers/net/wireless/
 INSTALL_PREFIX :=
@@ -1514,6 +1448,29 @@ ARCH := arm64
 CROSS_COMPILE := /home/android_sdk/Allwinner/a64/android-51/lichee/out/sun50iw1p1/android/common/buildroot/external-toolchain/bin/aarch64-linux-gnu-
 KSRC :=/home/android_sdk/Allwinner/a64/android-51/lichee/linux-3.10/
 endif
+
+ifeq ($(CONFIG_PLATFORM_ARM_RPI), y)
+EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN
+EXTRA_CFLAGS += -DCONFIG_IOCTL_CFG80211 -DRTW_USE_CFG80211_STA_EVENT
+ARCH ?= arm
+CROSS_COMPILE ?=
+KVER ?= $(shell uname -r)
+KSRC := /lib/modules/$(KVER)/build
+MODDESTDIR := /lib/modules/$(KVER)/kernel/drivers/net/wireless/
+INSTALL_PREFIX :=
+endif
+
+ifeq ($(CONFIG_PLATFORM_ARM64_RPI), y)
+EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN
+EXTRA_CFLAGS += -DCONFIG_IOCTL_CFG80211 -DRTW_USE_CFG80211_STA_EVENT
+ARCH ?= arm64
+CROSS_COMPILE ?=
+KVER ?= $(shell uname -r)
+KSRC := /lib/modules/$(KVER)/build
+MODDESTDIR := /lib/modules/$(KVER)/kernel/drivers/net/wireless/
+INSTALL_PREFIX :=
+endif
+
 
 ifeq ($(CONFIG_PLATFORM_TI_AM3517), y)
 EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN -DCONFIG_PLATFORM_ANDROID -DCONFIG_PLATFORM_SHUTTLE
@@ -2294,7 +2251,7 @@ ARCH := arm
 CROSS_COMPILE := /home/android_sdk/Telechips/v13.05_r1-tcc-android-4.2.2_tcc893x-evm_build/prebuilts/gcc/linux-x86/arm/arm-eabi-4.6/bin/arm-eabi-
 KSRC := /home/android_sdk/Telechips/v13.05_r1-tcc-android-4.2.2_tcc893x-evm_build/kernel
 MODULE_NAME := wlan
-endif
+endif 
 
 ifeq ($(CONFIG_PLATFORM_RTL8197D), y)
 EXTRA_CFLAGS += -DCONFIG_BIG_ENDIAN -DCONFIG_PLATFORM_RTL8197D
@@ -2402,7 +2359,7 @@ endif
 
 USER_MODULE_NAME ?=
 ifneq ($(USER_MODULE_NAME),)
-MODULE_NAME := $(USER_MODULE_NAME)
+MODULE_NAME := $(USER_MODULE_NAME)_ohd
 endif
 
 ifneq ($(KERNELRELEASE),)
@@ -2525,6 +2482,7 @@ export CONFIG_RTL8822BU = m
 all: modules
 
 modules:
+	    @echo '#define DRIVERVERSION "v5.13.1_ohd_$(shell git rev-parse --short HEAD)"' > $(VERSION_HEADER)
 	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -C $(KSRC) M=$(shell pwd)  modules
 
 strip:
@@ -2535,15 +2493,8 @@ install:
 	/sbin/depmod -a ${KVER}
 
 uninstall:
-	rm -f $(MODDESTDIR)$(MODULE_NAME).ko
+	rm -f $(MODDESTDIR)/$(MODULE_NAME).ko
 	/sbin/depmod -a ${KVER}
-
-sign:
-	@openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out MOK.der -nodes -days 36500 -subj "/CN=Custom MOK/"
-	@mokutil --import MOK.der
-	@$(KSRC)/scripts/sign-file sha256 MOK.priv MOK.der 88x2bu.ko
-
-sign-install: sign install
 
 backup_rtlwifi:
 	@echo "Making backup rtlwifi drivers"
@@ -2587,6 +2538,7 @@ config_r:
 .PHONY: modules clean
 
 clean:
+	@echo '#define DRIVERVERSION "v5.13.1_ohd_THIS_IS_DIRTY"' > $(VERSION_HEADER)
 	#$(MAKE) -C $(KSRC) M=$(shell pwd) clean
 	cd hal ; rm -fr */*/*/*.mod.c */*/*/*.mod */*/*/*.o */*/*/.*.cmd */*/*/*.ko
 	cd hal ; rm -fr */*/*.mod.c */*/*.mod */*/*.o */*/.*.cmd */*/*.ko
@@ -2600,5 +2552,5 @@ clean:
 	rm -fr Module.symvers ; rm -fr Module.markers ; rm -fr modules.order
 	rm -fr *.mod.c *.mod *.o .*.cmd *.ko *~
 	rm -fr .tmp_versions
-	rm -fr MOK.der MOK.priv
 endif
+
